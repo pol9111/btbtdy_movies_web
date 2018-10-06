@@ -10,10 +10,12 @@ async def downloader(movie_ids):
     """设置下载任务"""
     base_url = 'http://www.btbtdy.net/vidlist/{}.html'
     sem = asyncio.Semaphore(1024)
+    tasks = []
     async with aiohttp.ClientSession() as session:
         for movie_id in movie_ids:
             url = base_url.format(str(int(movie_id)))
-            tasks = [asyncio.ensure_future(fetch(sem, url, session, movie_id))]
+            task = asyncio.ensure_future(fetch(sem, url, session, movie_id))
+            tasks.append(task)
         return await asyncio.gather(*tasks)
 
 
@@ -88,8 +90,7 @@ def get_newest_id(url):
 def start_requests(urls, loop):
     """开始请求任务"""
     sys.stdout.write('开始进行抓取\n')
-    tasks = [asyncio.ensure_future(downloader(urls))]
-    loop.run_until_complete(asyncio.wait(tasks))
+    loop.run_until_complete(downloader(urls))
 
 
 def main():
